@@ -3,6 +3,7 @@ package com.example.inventory.model;
 import jakarta.persistence.*;
 import lombok.Data;
 import java.math.BigDecimal;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @Data
 @Entity
@@ -17,6 +18,7 @@ public class OrderItem {
     @Column(name = "id")
     private Long id;
 
+    @JsonIgnoreProperties({"items"})
     @ManyToOne
     @JoinColumn(name = "order_id", nullable = false)
     private CustomerOrder order;
