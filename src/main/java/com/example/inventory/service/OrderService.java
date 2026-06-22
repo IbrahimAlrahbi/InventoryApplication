@@ -130,23 +130,31 @@ public class OrderService {
             }
         }
 
-        // STEP 2: If all checks pass, reduce stock and calculate totals
+        // STEP 2: If all checks pass, lock products, reduce stock, and calculate totals
         BigDecimal totalAmount = BigDecimal.ZERO;
 
         for (OrderItem item : order.getItems()) {
-            Product product = item.getProduct();
+            // Lock the product row to prevent race conditions
+            Product lockedProduct = productRepository.findByIdWithLock(item.getProduct().getId())
+                    .orElseThrow(() -> new NotFoundException("Product not found with id: " + item.getProduct().getId()));
+
+            // Re-verify stock with the locked row (safest approach)
+            if (lockedProduct.getStockQuantity() < item.getQuantity()) {
+                throw new BusinessRuleException("Insufficient stock for product: " + lockedProduct.getName()
+                        + ". Available: " + lockedProduct.getStockQuantity()
+                        + ", Required: " + item.getQuantity());
+            }
 
             // Reduce stock
-            product.setStockQuantity(product.getStockQuantity() - item.getQuantity());
+            lockedProduct.setStockQuantity(lockedProduct.getStockQuantity() - item.getQuantity());
 
             // Copy current price and calculate line total
-            item.setUnitPriceAtConfirmation(product.getPrice());
-            BigDecimal lineTotal = product.getPrice().multiply(BigDecimal.valueOf(item.getQuantity()));
+            item.setUnitPriceAtConfirmation(lockedProduct.getPrice());
+            BigDecimal lineTotal = lockedProduct.getPrice().multiply(BigDecimal.valueOf(item.getQuantity()));
             item.setLineTotal(lineTotal);
 
             totalAmount = totalAmount.add(lineTotal);
         }
-
         // STEP 3: Update order details
         order.setTotalAmount(totalAmount);
         order.setStatus(OrderStatus.CONFIRMED);
