@@ -13,6 +13,7 @@ import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import com.example.inventory.dto.UpdateOrderStatusRequest;
 
 @RestController
 @RequestMapping("/api")
@@ -56,6 +57,14 @@ public class OrderController {
     @PostMapping("/orders/{orderId}/confirm")
     public ResponseEntity<CustomerOrder> confirmOrder(@PathVariable Long orderId) {
         CustomerOrder order = orderService.confirmOrder(orderId);
+        return ResponseEntity.ok(order);
+    }
+
+    @PostMapping("/orders/{orderId}/status")
+    public ResponseEntity<CustomerOrder> updateOrderStatus(
+            @PathVariable Long orderId,
+            @Valid @RequestBody UpdateOrderStatusRequest request) {
+        CustomerOrder order = orderService.updateOrderStatus(orderId, request);
         return ResponseEntity.ok(order);
     }
 }

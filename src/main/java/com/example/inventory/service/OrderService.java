@@ -17,6 +17,7 @@ import com.example.inventory.repository.OrderItemRepository;
 import com.example.inventory.repository.ProductRepository;
 import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
+import com.example.inventory.dto.UpdateOrderStatusRequest;
 
 import java.time.LocalDateTime;
 
@@ -161,5 +162,41 @@ public class OrderService {
         order.setConfirmedAt(LocalDateTime.now());
 
         return orderRepository.save(order);
+
+        @Transactional
+        public CustomerOrder updateOrderStatus(Long orderId, UpdateOrderStatusRequest request) {
+            CustomerOrder order = orderRepository.findById(orderId)
+                    .orElseThrow(() -> new NotFoundException("Order not found with id: " + orderId));
+
+            OrderStatus currentStatus = order.getStatus();
+            OrderStatus newStatus = OrderStatus.valueOf(request.getStatus());
+
+            boolean isValidTransition = false;
+
+            if (currentStatus == OrderStatus.CONFIRMED) {
+                if (newStatus == OrderStatus.SHIPPED || newStatus == OrderStatus.CANCELLED) {
+                    isValidTransition = true;
+                }
+            } else if (currentStatus == OrderStatus.SHIPPED) {
+                if (newStatus == OrderStatus.DELIVERED) {
+                    isValidTransition = true;
+                }
+            }
+
+            if (!isValidTransition) {
+                throw new BusinessRuleException("Invalid status transition from " + currentStatus + " to " + newStatus);
+            }
+
+            if (newStatus == OrderStatus.CANCELLED) {
+                for (OrderItem item : order.getItems()) {
+                    Product product = productRepository.findById(item.getProduct().getId())
+                            .orElseThrow(() -> new NotFoundException("Product not found with id: " + item.getProduct().getId()));
+                    product.setStockQuantity(product.getStockQuantity() + item.getQuantity());
+                }
+            }
+
+            order.setStatus(newStatus);
+            return orderRepository.save(order);
+        }
     }
 }
