@@ -18,7 +18,7 @@ public class CustomerOrder {
     @Column(name = "id")
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "customer_id", nullable = false)
     private Customer customer;
 
