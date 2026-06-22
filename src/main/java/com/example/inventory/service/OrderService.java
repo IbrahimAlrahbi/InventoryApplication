@@ -15,6 +15,8 @@ import com.example.inventory.model.OrderItem;
 import com.example.inventory.model.Product;
 import com.example.inventory.repository.OrderItemRepository;
 import com.example.inventory.repository.ProductRepository;
+import org.springframework.transaction.annotation.Transactional;
+import java.math.BigDecimal;
 
 import java.time.LocalDateTime;
 
@@ -103,5 +105,53 @@ public class OrderService {
         }
 
         orderItemRepository.delete(item);
+    }
+    @Transactional
+    public CustomerOrder confirmOrder(Long orderId) {
+        CustomerOrder order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new NotFoundException("Order not found with id: " + orderId));
+
+        if (order.getStatus() != OrderStatus.DRAFT) {
+            throw new BusinessRuleException("Cannot confirm order with status: " + order.getStatus());
+        }
+
+        if (order.getItems().isEmpty()) {
+            throw new BusinessRuleException("Cannot confirm an empty order");
+        }
+
+        // STEP 1: Check stock for ALL items first (all-or-nothing)
+        for (OrderItem item : order.getItems()) {
+            Product product = item.getProduct();
+
+            if (product.getStockQuantity() < item.getQuantity()) {
+                throw new BusinessRuleException("Insufficient stock for product: " + product.getName()
+                        + ". Available: " + product.getStockQuantity()
+                        + ", Required: " + item.getQuantity());
+            }
+        }
+
+        // STEP 2: If all checks pass, reduce stock and calculate totals
+        BigDecimal totalAmount = BigDecimal.ZERO;
+
+        for (OrderItem item : order.getItems()) {
+            Product product = item.getProduct();
+
+            // Reduce stock
+            product.setStockQuantity(product.getStockQuantity() - item.getQuantity());
+
+            // Copy current price and calculate line total
+            item.setUnitPriceAtConfirmation(product.getPrice());
+            BigDecimal lineTotal = product.getPrice().multiply(BigDecimal.valueOf(item.getQuantity()));
+            item.setLineTotal(lineTotal);
+
+            totalAmount = totalAmount.add(lineTotal);
+        }
+
+        // STEP 3: Update order details
+        order.setTotalAmount(totalAmount);
+        order.setStatus(OrderStatus.CONFIRMED);
+        order.setConfirmedAt(LocalDateTime.now());
+
+        return orderRepository.save(order);
     }
 }

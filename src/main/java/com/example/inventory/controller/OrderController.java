@@ -52,4 +52,10 @@ public class OrderController {
         orderService.removeOrderItem(orderId, itemId);
         return ResponseEntity.noContent().build();
     }
+
+    @PostMapping("/orders/{orderId}/confirm")
+    public ResponseEntity<CustomerOrder> confirmOrder(@PathVariable Long orderId) {
+        CustomerOrder order = orderService.confirmOrder(orderId);
+        return ResponseEntity.ok(order);
+    }
 }
