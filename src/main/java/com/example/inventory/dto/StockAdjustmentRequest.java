@@ -1,4 +1,4 @@
-package com.example.inventory.dto.request;
+package com.example.inventory.dto;
 
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
