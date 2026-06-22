@@ -1,6 +1,7 @@
 package com.example.inventory.controller;
 
 import com.example.inventory.dto.CreateProductRequest;
+import com.example.inventory.dto.StockAdjustmentRequest;
 import com.example.inventory.model.Product;
 import com.example.inventory.service.ProductService;
 import jakarta.validation.Valid;
@@ -20,5 +21,13 @@ public class ProductController {
     public ResponseEntity<Product> createProduct(@Valid @RequestBody CreateProductRequest request) {
         Product product = productService.createProduct(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(product);
+    }
+
+    @PostMapping("/{productId}/stock-adjustment")
+    public ResponseEntity<Product> adjustStock(
+            @PathVariable Long productId,
+            @Valid @RequestBody StockAdjustmentRequest request) {
+        Product product = productService.adjustStock(productId, request);
+        return ResponseEntity.ok(product);
     }
 }
