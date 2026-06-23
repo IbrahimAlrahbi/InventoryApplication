@@ -11,6 +11,8 @@ import org.springframework.stereotype.Service;
 import com.example.inventory.dto.StockAdjustmentRequest;
 import com.example.inventory.exception.BusinessRuleException;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class ProductService {
@@ -48,4 +50,9 @@ public class ProductService {
         product.setStockQuantity(newStock);
         return productRepository.save(product);
     }
+
+    public List<Product> getLowStockProducts(Integer threshold) {
+        return productRepository.findByStockQuantityLessThan(threshold);
+    }
+
 }
