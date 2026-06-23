@@ -1,0 +1,239 @@
+================================================================================
+           INVENTORY & ORDER MANAGEMENT API - POSTMAN COLLECTION
+================================================================================
+Base URL: http://localhost:8080
+
+================================================================================
+1. CATEGORY API
+================================================================================
+
+# 1.1 Create Category (Success)
+POST http://localhost:8080/api/categories
+Content-Type: application/json
+
+{
+  "name": "Books"
+}
+
+# 1.2 Create Category with Empty Name (Validation Error)
+POST http://localhost:8080/api/categories
+Content-Type: application/json
+
+{
+  "name": ""
+}
+
+# 1.3 Create Category "Gadgets"
+POST http://localhost:8080/api/categories
+Content-Type: application/json
+
+{
+  "name": "Gadgets"
+}
+
+================================================================================
+2. PRODUCT API
+================================================================================
+
+# 2.1 Create Product - Pen
+POST http://localhost:8080/api/products
+Content-Type: application/json
+
+{
+  "name": "Pen",
+  "price": 5.50,
+  "stockQuantity": 100,
+  "categoryId": 10
+}
+
+# 2.2 Create Product - Tablet
+POST http://localhost:8080/api/products
+Content-Type: application/json
+
+{
+  "name": "Tablet",
+  "price": 300.00,
+  "stockQuantity": 5,
+  "categoryId": 10
+}
+
+# 2.3 Create Product with Negative Price (Validation Error)
+POST http://localhost:8080/api/products
+Content-Type: application/json
+
+{
+  "name": "Bad Product",
+  "price": -10.00,
+  "stockQuantity": 5,
+  "categoryId": 10
+}
+
+# 2.4 Create Product with Negative Stock (Validation Error)
+POST http://localhost:8080/api/products
+Content-Type: application/json
+
+{
+  "name": "Bad Product",
+  "price": 10.00,
+  "stockQuantity": -5,
+  "categoryId": 11
+}
+
+# 2.5 Create Product with Invalid Category (404)
+POST http://localhost:8080/api/products
+Content-Type: application/json
+
+{
+  "name": "Orphan Product",
+  "price": 10.00,
+  "stockQuantity": 5,
+  "categoryId": 9999
+}
+
+# 2.6 Stock Adjustment - Reduce Stock
+POST http://localhost:8080/api/products/8/stock-adjustment
+Content-Type: application/json
+
+{
+  "quantity": -5
+}
+
+# 2.7 Stock Adjustment - Set Quantity to 0
+POST http://localhost:8080/api/products/8/stock-adjustment
+Content-Type: application/json
+
+{
+  "quantity": 0
+}
+
+================================================================================
+3. CUSTOMER API
+================================================================================
+
+# 3.1 Create Customer - Test User
+POST http://localhost:8080/api/customers
+Content-Type: application/json
+
+{
+  "name": "Test User",
+  "email": "unique@test.com"
+}
+
+# 3.2 Create Customer - Salim
+POST http://localhost:8080/api/customers
+Content-Type: application/json
+
+{
+  "name": "Salim",
+  "email": "Salim123@test.com"
+}
+
+# 3.3 Create Customer with Invalid Email (Validation Error)
+POST http://localhost:8080/api/customers
+Content-Type: application/json
+
+{
+  "name": "Bad User",
+  "email": "not-an-email"
+}
+
+# 3.4 Create Customer with Duplicate Email (Error)
+POST http://localhost:8080/api/customers
+Content-Type: application/json
+
+{
+  "name": "Duplicate User",
+  "email": "unique@test.com"
+}
+
+================================================================================
+4. ORDER API
+================================================================================
+
+# 4.1 Create Draft Order
+POST http://localhost:8080/api/orders
+Content-Type: application/json
+
+{
+  "customerId": 8
+}
+
+# 4.2 Add Item to Order
+POST http://localhost:8080/api/orders/12/items
+Content-Type: application/json
+
+{
+  "productId": 7,
+  "quantity": 2
+}
+
+# 4.3 Add Item to Order (Order 13)
+POST http://localhost:8080/api/orders/13/items
+Content-Type: application/json
+
+{
+  "productId": 6,
+  "quantity": 2
+}
+
+# 4.4 Confirm Order
+POST http://localhost:8080/api/orders/12/confirm
+Content-Type: application/json
+
+# 4.5 Confirm Order (Order 13)
+POST http://localhost:8080/api/orders/13/confirm
+Content-Type: application/json
+
+# 4.6 Update Order Status to CANCELLED
+POST http://localhost:8080/api/orders/13/status
+Content-Type: application/json
+
+{
+  "status": "CANCELLED"
+}
+
+# 4.7 Update Order Status to DELIVERED
+POST http://localhost:8080/api/orders/12/status
+Content-Type: application/json
+
+{
+  "status": "DELIVERED"
+}
+
+# 4.8 Update Order Status to SHIPPED
+POST http://localhost:8080/api/orders/12/status
+Content-Type: application/json
+
+{
+  "status": "SHIPPED"
+}
+
+# 4.9 Update Order Status to SHIPPED (Unconfirmed Order - Error)
+POST http://localhost:8080/api/orders/14/status
+Content-Type: application/json
+
+{
+  "status": "SHIPPED"
+}
+
+# 4.10 Cancel Confirmed Order
+POST http://localhost:8080/api/orders/12/status
+Content-Type: application/json
+
+{
+  "status": "CANCELLED"
+}
+
+================================================================================
+5. LOW STOCK REPORT API
+================================================================================
+
+# 5.1 Get Low Stock Products (threshold=5)
+GET http://localhost:8080/api/products/low-stock?threshold=5
+
+# 5.2 Get Low Stock Products (threshold=0)
+GET http://localhost:8080/api/products/low-stock?threshold=0
+
+================================================================================
+                              END OF COLLECTION
+================================================================================
