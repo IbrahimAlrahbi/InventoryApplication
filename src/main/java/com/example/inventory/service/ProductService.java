@@ -54,5 +54,4 @@ public class ProductService {
     public List<Product> getLowStockProducts(Integer threshold) {
         return productRepository.findByStockQuantityLessThan(threshold);
     }
-
 }
